@@ -3,6 +3,8 @@ package elgo
 import (
 	"encoding/binary"
 	"fmt"
+	"bytes"
+	"io"
 	"compress/zlib"
 	"compress/gzip"
 
