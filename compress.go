@@ -3,6 +3,8 @@ package elgo
 import (
 	"encoding/binary"
 	"fmt"
+	"compress/zlib"
+	"compress/gzip"
 
 	"github.com/hungys/go-lz4"
 )
@@ -36,4 +38,56 @@ func LZ4DeCompress(source []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Error on decompress packet size")
 	}
 	return dest[:], nil
+}
+
+func ZlibCompress(source []byte) ([]byte, error) {
+	var in bytes.Buffer
+    w := zlib.NewWriter(&in)
+	_, err := w.Write(source)
+    w.Close()	
+	if err != nil {
+		return nil, err
+	}
+    return in.Bytes(), nil
+}
+
+func ZlibDeCompress(source []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(source[:])
+	reader, err := zlib.NewReader(buf)
+	if err != nil {
+		return nil, err
+	}
+	var out bytes.Buffer
+	_, err := io.Copy(&out, reader)
+	if err != nil {
+		return nil, err
+	}
+	reader.Close()
+	return out.Bytes(), nil
+}
+
+func GZipCompress(source []byte) ([]byte, error) {
+	var in bytes.Buffer
+    w := gzip.NewWriter(&in)
+	_, err := w.Write(source)
+    w.Close()	
+	if err != nil {
+		return nil, err
+	}
+    return in.Bytes(), nil
+}
+
+func GZipDeCompress(source []byte) )[]byte, error) {
+	buf := bytes.NewBuffer(source[:])
+	reader, err := gzip.NewReader(buf)
+	if err != nil {
+		return nil, err
+	}
+	var out bytes.Buffer
+	_, err := io.Copy(&out, reader)
+	if err != nil {
+		return nil, err
+	}
+	reader.Close()
+	return out.Bytes(), nil
 }
