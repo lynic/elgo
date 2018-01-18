@@ -58,7 +58,7 @@ func ZlibDeCompress(source []byte) ([]byte, error) {
 		return nil, err
 	}
 	var out bytes.Buffer
-	_, err := io.Copy(&out, reader)
+	_, err = io.Copy(&out, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -77,14 +77,14 @@ func GZipCompress(source []byte) ([]byte, error) {
     return in.Bytes(), nil
 }
 
-func GZipDeCompress(source []byte) )[]byte, error) {
+func GZipDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader, err := gzip.NewReader(buf)
 	if err != nil {
 		return nil, err
 	}
 	var out bytes.Buffer
-	_, err := io.Copy(&out, reader)
+	_, err = io.Copy(&out, reader)
 	if err != nil {
 		return nil, err
 	}
