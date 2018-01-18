@@ -20,6 +20,9 @@ func LZ4Compress(source []byte) ([]byte, error) {
 }
 
 func LZ4DeCompress(source []byte) ([]byte, error) {
+	if len(source) < 3 {
+		return nil, fmt.Errorf("Invalid length")
+	}
 	lensrc := len(source) - 2
 	nn := binary.BigEndian.Uint16(source[lensrc:])
 	dest := make([]byte, nn)
