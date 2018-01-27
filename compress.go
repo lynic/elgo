@@ -9,25 +9,14 @@ import (
 
 	"github.com/golang/snappy"
 	"github.com/pierrec/lz4"
+	"github.com/ulikunitz/xz"
 )
-
-// func LZ4Compress(source []byte) ([]byte, error) {
-// 	lensrc := len(source)
-// 	dest := make([]byte, 2*lensrc)
-// 	n, err := lz4.CompressFast(source, dest, 7)
-// 	if err != nil {
-// 		fmt.Printf("Failed to compress source: %v\n", source)
-// 		return nil, err
-// 	}
-// 	binary.BigEndian.PutUint32(dest[n:n+4], uint32(lensrc))
-// 	return dest[:n+4], nil
-// }
 
 func LZ4Compress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
 	w := lz4.NewWriter(&in)
-	_, err := w.Write(source)
 	defer w.Close()
+	_, err := w.Write(source)
 	if err != nil {
 		return nil, err
 	}
@@ -45,30 +34,14 @@ func LZ4DeCompress(source []byte) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-// func LZ4DeCompress(source []byte) ([]byte, error) {
-// 	if len(source) < 5 {
-// 		return nil, fmt.Errorf("Invalid length")
-// 	}
-// 	lensrc := len(source) - 4
-// 	nn := binary.BigEndian.Uint32(source[lensrc:])
-// 	dest := make([]byte, nn)
-// 	n, err := lz4.DecompressSafe(source[:lensrc], dest)
-// 	if err != nil {
-// 		fmt.Printf("Failed to decompress source: %v\n", source)
-// 		return nil, err
-// 	}
-// 	if uint32(n) != nn {
-// 		fmt.Printf("Size after decompress %d is not the same as %s.\n", n, nn)
-// 		return nil, fmt.Errorf("Error on decompress packet size")
-// 	}
-// 	return dest[:], nil
-// }
-
 func ZlibCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-	w, _ := zlib.NewWriterLevel(&in, zlib.BestCompression)
-	_, err := w.Write(source)
+	w, err := zlib.NewWriterLevel(&in, zlib.BestCompression)
+	if err != nil {
+		return nil, err
+	}
 	defer w.Close()
+	_, err = w.Write(source)
 	if err != nil {
 		return nil, err
 	}
@@ -78,10 +51,10 @@ func ZlibCompress(source []byte) ([]byte, error) {
 func ZlibDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader, err := zlib.NewReader(buf)
-	defer reader.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 	var out bytes.Buffer
 	_, err = io.Copy(&out, reader)
 	if err != nil {
@@ -92,9 +65,12 @@ func ZlibDeCompress(source []byte) ([]byte, error) {
 
 func GZipCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-	w, _ := gzip.NewWriterLevel(&in, gzip.BestCompression)
-	_, err := w.Write(source)
+	w, err := gzip.NewWriterLevel(&in, gzip.BestCompression)
+	if err != nil {
+		return nil, err
+	}
 	defer w.Close()
+	_, err = w.Write(source)
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +80,10 @@ func GZipCompress(source []byte) ([]byte, error) {
 func GZipDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader, err := gzip.NewReader(buf)
-	defer reader.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 	var out bytes.Buffer
 	_, err = io.Copy(&out, reader)
 	if err != nil {
@@ -118,9 +94,12 @@ func GZipDeCompress(source []byte) ([]byte, error) {
 
 func FlateCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-	w, _ := flate.NewWriter(&in, flate.BestCompression)
-	_, err := w.Write(source)
+	w, err := flate.NewWriter(&in, flate.BestCompression)
+	if err != nil {
+		return nil, err
+	}
 	defer w.Close()
+	_, err = w.Write(source)
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +121,8 @@ func FlateDeCompress(source []byte) ([]byte, error) {
 func SnappyCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
 	w := snappy.NewWriter(&in)
-	_, err := w.Write(source)
 	defer w.Close()
+	_, err := w.Write(source)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +134,34 @@ func SnappyDeCompress(source []byte) ([]byte, error) {
 	reader := snappy.NewReader(buf)
 	var out bytes.Buffer
 	_, err := io.Copy(&out, reader)
+	if err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
+}
+
+func XzCompress(source []byte) ([]byte, error) {
+	var in bytes.Buffer
+	w, err := xz.NewWriter(&in)
+	if err != nil {
+		return nil, err
+	}
+	defer w.Close()
+	_, err = w.Write(source)
+	if err != nil {
+		return nil, err
+	}
+	return in.Bytes(), nil
+}
+
+func XzDeCompress(source []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(source[:])
+	reader, err := xz.NewReader(buf)
+	if err != nil {
+		return nil, err
+	}
+	var out bytes.Buffer
+	_, err = io.Copy(&out, reader)
 	if err != nil {
 		return nil, err
 	}

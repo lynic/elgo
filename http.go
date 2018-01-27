@@ -39,6 +39,11 @@ func ReadHTTPBody(r *http.Request) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+	case "xz":
+		payload, err = XzDeCompress(content[:])
+		if err != nil {
+			return nil, err
+		}
 	}
 	return payload, nil
 }
@@ -78,6 +83,12 @@ func CompressHTTPBody(r *http.Request, header http.Header, body []byte) ([]byte,
 			return nil, err
 		}
 		header.Set("Content-Encoding", "zlib")
+	case "xz":
+		payload, err = XzCompress(body[:])
+		if err != nil {
+			return nil, err
+		}
+		header.Set("Content-Encoding", "xz")
 	default:
 		payload = body
 	}
