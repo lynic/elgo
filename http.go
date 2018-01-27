@@ -38,12 +38,12 @@ func CompressHTTPBody(r *http.Request, header http.Header, body []byte) ([]byte,
 	var payload []byte
 	var err error
 	switch compress {
-	case "lz4":
-		payload, err = LZ4Compress(body[:])
-		if err != nil {
-			return nil, err
-		}
-		header.Set("Content-Encoding", "lz4")
+	// case "lz4":
+	// 	payload, err = LZ4Compress(body[:])
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	header.Set("Content-Encoding", "lz4")
 	case "gzip":
 		payload, err = GZipCompress(body[:])
 		if err != nil {
@@ -51,7 +51,7 @@ func CompressHTTPBody(r *http.Request, header http.Header, body []byte) ([]byte,
 		}
 		header.Set("Content-Encoding", "gzip")
 	case "deflate":
-		payload, err = ZlibCompress(body[:])
+		payload, err = FlateCompress(body[:])
 		if err != nil {
 			return nil, err
 		}

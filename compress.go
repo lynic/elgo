@@ -1,12 +1,13 @@
 package elgo
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
+	"compress/zlib"
 	"encoding/binary"
 	"fmt"
-	"bytes"
 	"io"
-	"compress/zlib"
-	"compress/gzip"
 
 	"github.com/hungys/go-lz4"
 )
@@ -44,18 +45,19 @@ func LZ4DeCompress(source []byte) ([]byte, error) {
 
 func ZlibCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-    w := zlib.NewWriter(&in)
+	w, _ := zlib.NewWriterLevel(&in, zlib.BestCompression)
 	_, err := w.Write(source)
-    w.Close()	
+	defer w.Close()
 	if err != nil {
 		return nil, err
 	}
-    return in.Bytes(), nil
+	return in.Bytes(), nil
 }
 
 func ZlibDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader, err := zlib.NewReader(buf)
+	defer reader.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -64,24 +66,24 @@ func ZlibDeCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	reader.Close()
 	return out.Bytes(), nil
 }
 
 func GZipCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-    w := gzip.NewWriter(&in)
+	w, _ := gzip.NewWriterLevel(&in, gzip.BestCompression)
 	_, err := w.Write(source)
-    w.Close()	
+	defer w.Close()
 	if err != nil {
 		return nil, err
 	}
-    return in.Bytes(), nil
+	return in.Bytes(), nil
 }
 
 func GZipDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader, err := gzip.NewReader(buf)
+	defer reader.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +92,28 @@ func GZipDeCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	reader.Close()
+	return out.Bytes(), nil
+}
+
+func FlateCompress(source []byte) ([]byte, error) {
+	var in bytes.Buffer
+	w, _ := flate.NewWriter(&in, flate.BestCompression)
+	_, err := w.Write(source)
+	defer w.Close()
+	if err != nil {
+		return nil, err
+	}
+	return in.Bytes(), nil
+}
+
+func FlateDeCompress(source []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(source[:])
+	reader := flate.NewReader(buf)
+	defer reader.Close()
+	var out bytes.Buffer
+	_, err := io.Copy(&out, reader)
+	if err != nil {
+		return nil, err
+	}
 	return out.Bytes(), nil
 }
