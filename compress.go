@@ -24,7 +24,7 @@ import (
 
 func LZ4Compress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
-	w, _ := lz4.NewWriterLevel(&in, lz4.BestCompression)
+	w := lz4.NewWriter(&in)
 	_, err := w.Write(source)
 	defer w.Close()
 	if err != nil {
@@ -35,13 +35,9 @@ func LZ4Compress(source []byte) ([]byte, error) {
 
 func LZ4DeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
-	reader, err := lz4.NewReader(buf)
-	defer reader.Close()
-	if err != nil {
-		return nil, err
-	}
+	reader := lz4.NewReader(buf)
 	var out bytes.Buffer
-	_, err = io.Copy(&out, reader)
+	_, err := io.Copy(&out, reader)
 	if err != nil {
 		return nil, err
 	}
