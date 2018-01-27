@@ -25,7 +25,17 @@ func ReadHTTPBody(r *http.Request) ([]byte, error) {
 			return nil, err
 		}
 	case "deflate":
+		payload, err = FlateDeCompress(content[:])
+		if err != nil {
+			return nil, err
+		}
+	case "zlib":
 		payload, err = ZlibDeCompress(content[:])
+		if err != nil {
+			return nil, err
+		}
+	case "snappy":
+		payload, err = SnappyDeCompress(content[:])
 		if err != nil {
 			return nil, err
 		}
@@ -44,6 +54,12 @@ func CompressHTTPBody(r *http.Request, header http.Header, body []byte) ([]byte,
 			return nil, err
 		}
 		header.Set("Content-Encoding", "lz4")
+	case "snappy":
+		payload, err = SnappyCompress(body[:])
+		if err != nil {
+			return nil, err
+		}
+		header.Set("Content-Encoding", "snappy")
 	case "gzip":
 		payload, err = GZipCompress(body[:])
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"compress/zlib"
 	"io"
 
+	"github.com/golang/snappy"
 	"github.com/pierrec/lz4"
 )
 
@@ -130,6 +131,28 @@ func FlateDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader := flate.NewReader(buf)
 	defer reader.Close()
+	var out bytes.Buffer
+	_, err := io.Copy(&out, reader)
+	if err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
+}
+
+func SnappyCompress(source []byte) ([]byte, error) {
+	var in bytes.Buffer
+	w := snappy.NewWriter(&in)
+	_, err := w.Write(source)
+	defer w.Close()
+	if err != nil {
+		return nil, err
+	}
+	return in.Bytes(), nil
+}
+
+func SnappyDeCompress(source []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(source[:])
+	reader := snappy.NewReader(buf)
 	var out bytes.Buffer
 	_, err := io.Copy(&out, reader)
 	if err != nil {
