@@ -15,8 +15,8 @@ import (
 func LZ4Compress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
 	w := lz4.NewWriter(&in)
-	defer w.Close()
 	_, err := w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func ZlibCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer w.Close()
 	_, err = w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +54,9 @@ func ZlibDeCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
 	var out bytes.Buffer
 	_, err = io.Copy(&out, reader)
+	reader.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +69,8 @@ func GZipCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer w.Close()
 	_, err = w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +83,9 @@ func GZipDeCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
 	var out bytes.Buffer
 	_, err = io.Copy(&out, reader)
+	reader.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +98,8 @@ func FlateCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer w.Close()
 	_, err = w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +109,9 @@ func FlateCompress(source []byte) ([]byte, error) {
 func FlateDeCompress(source []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(source[:])
 	reader := flate.NewReader(buf)
-	defer reader.Close()
 	var out bytes.Buffer
 	_, err := io.Copy(&out, reader)
+	reader.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func FlateDeCompress(source []byte) ([]byte, error) {
 func SnappyCompress(source []byte) ([]byte, error) {
 	var in bytes.Buffer
 	w := snappy.NewWriter(&in)
-	defer w.Close()
 	_, err := w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +146,8 @@ func XzCompress(source []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer w.Close()
 	_, err = w.Write(source)
+	w.Close()
 	if err != nil {
 		return nil, err
 	}
