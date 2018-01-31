@@ -22,6 +22,14 @@ func ToJson(v interface{}) ([]byte, error) {
 	return out, nil
 }
 
+func FromJson(data []byte, v interface{}) error {
+	err := json.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func SaveStruct(v interface{}, filename string) error {
 	out, err := ToJson(v)
 	if err != nil {
