@@ -10,10 +10,18 @@ func ReadHTTPBody(r *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	encoding := r.Header.Get("Content-Encoding")
+	return ReadHTTP(content, encoding)
+}
+
+func ReadHTTP(content []byte, encoding string) ([]byte, error) {
+	if encoding == "" {
+		return content, nil
+	}
 	var payload []byte
+	var err error
 	payload = content[:]
-	compress := r.Header.Get("Content-Encoding")
-	switch compress {
+	switch encoding {
 	case "lz4":
 		payload, err = LZ4DeCompress(content[:])
 		if err != nil {
