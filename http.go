@@ -100,13 +100,15 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 	if contentEncoding != "" {
 		return body, nil
 	}
-	acceptEncoding := requestHeader["Accept-Encoding"]
-	if len(acceptEncoding) == 0 {
+	acceptEncoding := requestHeader.Get("Accept-Encoding")
+	if acceptEncoding == "" {
 		return body, nil
 	}
+	compressed := false
 	var payload []byte
 	var err error
-	for _, coding := range acceptEncoding {
+	payload = body
+	for _, coding := range TrimSplit(acceptEncoding, ",") {
 		switch coding {
 		case "lz4":
 			payload, err = LZ4Compress(body[:])
@@ -114,6 +116,7 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "lz4")
+			compressed = true
 			break
 		case "snappy":
 			payload, err = SnappyCompress(body[:])
@@ -121,6 +124,7 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "snappy")
+			compressed = true
 			break
 		case "gzip":
 			payload, err = GZipCompress(body[:])
@@ -128,6 +132,7 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "gzip")
+			compressed = true
 			break
 		case "deflate":
 			payload, err = FlateCompress(body[:])
@@ -135,12 +140,14 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "deflate")
+			compressed = true
 		case "zlib":
 			payload, err = ZlibCompress(body[:])
 			if err != nil {
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "zlib")
+			compressed = true
 			break
 		case "xz":
 			payload, err = XzCompress(body[:])
@@ -148,10 +155,13 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 				return nil, err
 			}
 			respondHeader.Set("Content-Encoding", "xz")
+			compressed = true
 			break
 		}
 	}
-	respondHeader.Del("Content-Type")
-	respondHeader.Del("Content-Length")
+	if compressed {
+		respondHeader.Del("Content-Type")
+		respondHeader.Del("Content-Length")
+	}
 	return payload, nil
 }
