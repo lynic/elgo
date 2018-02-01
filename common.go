@@ -1,7 +1,6 @@
 package elgo
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -9,6 +8,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/json-iterator/go"
 )
 
 func CheckOS() string {
@@ -16,7 +17,7 @@ func CheckOS() string {
 }
 
 func ToJson(v interface{}) ([]byte, error) {
-	out, err := json.MarshalIndent(v, "", "  ")
+	out, err := jsoniter.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +25,7 @@ func ToJson(v interface{}) ([]byte, error) {
 }
 
 func FromJson(data []byte, v interface{}) error {
-	err := json.Unmarshal(data, v)
+	err := jsoniter.Unmarshal(data, v)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func LoadStruct(v interface{}, filename string) error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(data, v)
+	err = jsoniter.Unmarshal(data, v)
 	if err != nil {
 		return err
 	}
