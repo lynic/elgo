@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -28,6 +29,15 @@ func FromJson(data []byte, v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func TrimSplit(s, seq string) []string {
+	splited := strings.Split(s, seq)
+	ret := make([]string, len(splited))
+	for i, v := range splited {
+		ret[i] = strings.TrimSpace(v)
+	}
+	return ret
 }
 
 func SaveStruct(v interface{}, filename string) error {
