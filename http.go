@@ -1,6 +1,8 @@
 package elgo
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -172,4 +174,35 @@ func CompressHTTP(requestHeader http.Header, respondHeader http.Header, body []b
 		respondHeader.Del("Content-Length")
 	}
 	return payload, nil
+}
+
+func DoRequest(method, url string, body []byte, headers map[string]string) ([]byte, error) {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(fmt.Sprintf("Response code is %d %s", resp.StatusCode, string(data)))
+	}
+	cdata := data
+	if resp.Header.Get("Content-Encoding") != "" {
+		cdata, err = ReadHTTP(data, resp.Header.Get("Content-Encoding"))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return cdata, nil
 }
