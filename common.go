@@ -61,6 +61,18 @@ func SaveStruct(v interface{}, filename string) error {
 	return nil
 }
 
+func SaveStructPretty(v interface{}, filename string) error {
+	out, err := ToPrettyJson(v)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filename, out, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func LoadStruct(v interface{}, filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
