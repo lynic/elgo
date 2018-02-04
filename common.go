@@ -61,6 +61,22 @@ func SaveStruct(v interface{}, filename string) error {
 	return nil
 }
 
+func SaveStructCompress(v interface{}, filename string) error {
+	out, err := ToJson(v)
+	if err != nil {
+		return err
+	}
+	cout, err := GZipCompress(out)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filename, cout, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func SaveStructPretty(v interface{}, filename string) error {
 	out, err := ToPrettyJson(v)
 	if err != nil {
@@ -79,6 +95,22 @@ func LoadStruct(v interface{}, filename string) error {
 		return err
 	}
 	err = jsoniter.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func LoadStructCompress(v interface{}, filename string) error {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	cdata, err := GZipDeCompress(data)
+	if err != nil {
+		return err
+	}
+	err = jsoniter.Unmarshal(cdata, v)
 	if err != nil {
 		return err
 	}
