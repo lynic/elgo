@@ -17,6 +17,14 @@ func CheckOS() string {
 }
 
 func ToJson(v interface{}) ([]byte, error) {
+	out, err := jsoniter.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func ToPrettyJson(v interface{}) ([]byte, error) {
 	out, err := jsoniter.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return nil, err
