@@ -1,6 +1,8 @@
 package elgo
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -11,6 +13,12 @@ import (
 
 	"github.com/json-iterator/go"
 )
+
+func BasicAuth(username, password string) string {
+	auth := username + ":" + password
+	eauth := base64.StdEncoding.EncodeToString([]byte(auth))
+	return fmt.Sprintf("Basic %s", eauth)
+}
 
 func CheckOS() string {
 	return runtime.GOOS
