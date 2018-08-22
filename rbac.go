@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-
-	"github.com/machinebox/graphql"
 )
+
+const InternalCall = "internalCall"
 
 type AuthContext struct {
 	UserID   string
@@ -44,8 +44,9 @@ func (r *AuthHandler) LoadPolicy() (map[string][]string, error) {
 	// var policy *map[string][]string
 	policy := make(map[string][]string)
 	// ppolicy := &policy
-	err := JsonFromFile(rbacFilePath, policy)
+	err := JsonFromFile(rbacFilePath, &policy)
 	if err != nil {
+		fmt.Printf("Failed to load policy from %s:%s\n", rbacFilePath, err.Error())
 		return policy, err
 	}
 	return policy, nil
@@ -60,6 +61,9 @@ func (r *AuthHandler) AuthCtx(ctx context.Context) (*AuthContext, error) {
 }
 
 func (r *AuthHandler) CheckRule(ctx context.Context, method string) bool {
+	if _, exists := ctx.Value(InternalCall).(bool); exists {
+		return true
+	}
 	authCtx, err := r.AuthCtx(ctx)
 	if err != nil {
 		// no authentication wrapper
@@ -81,6 +85,21 @@ func (r *AuthHandler) CheckRule(ctx context.Context, method string) bool {
 	return false
 }
 
+func (r *AuthHandler) IsSelf(ctx context.Context, username string) bool {
+	authCtx, err := r.AuthCtx(ctx)
+	if err != nil {
+		// no auth wrapper
+		return true
+	}
+	if authCtx.IsAdmin() {
+		return true
+	}
+	if authCtx.Username == username {
+		return true
+	}
+	return false
+}
+
 func (r *AuthHandler) IsAdmin(ctx context.Context) bool {
 	authCtx, err := r.AuthCtx(ctx)
 	if err != nil {
@@ -88,46 +107,4 @@ func (r *AuthHandler) IsAdmin(ctx context.Context) bool {
 		return true
 	}
 	return authCtx.IsAdmin()
-}
-
-func AuthRequest(authorization string) (*AuthContext, error) {
-	authURL := os.Getenv("AUTHURL")
-	if authURL == "" {
-		return nil, fmt.Errorf("No AUTHURL")
-	}
-	username, password, err := DecodeAuthHeader(authorization)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(username, password)
-	godUser := os.Getenv("GODUSER")
-	if godUser != "" && godUser == username {
-		ret := &AuthContext{
-			UserID:   godUser,
-			Username: godUser,
-			Roles:    []string{"Admin"},
-		}
-		return ret, nil
-	}
-	resp := &AuthResponse{}
-	// authUser := &AuthUser{}
-	cli := graphql.NewClient(authURL)
-	query := fmt.Sprintf(`
-		query {
-			authUserPass(username: "%s", password: "%s") {
-				userID
-				username
-				roles
-			}
-		}`, username, password)
-	req := graphql.NewRequest(query)
-	// authorization := fmt.Sprintf("Basic %s", GenAuthorization(username, password))
-	req.Header.Set("Authorization", authorization)
-	ctx := context.Background()
-	err = cli.Run(ctx, req, resp)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("%v\n", resp.AuthUserPass)
-	return resp.AuthUserPass, nil
 }

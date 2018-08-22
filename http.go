@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/machinebox/graphql"
 )
 
 func ReadHTTPBody(r *http.Request) ([]byte, error) {
@@ -232,4 +234,44 @@ func HttpAuthWraper(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 		// next.ServeHTTP(w, r)
 	})
+}
+
+func AuthRequest(authorization string) (*AuthContext, error) {
+	authURL := os.Getenv("AUTHURL")
+	if authURL == "" {
+		return nil, fmt.Errorf("No AUTHURL")
+	}
+	username, password, err := DecodeAuthHeader(authorization)
+	if err != nil {
+		return nil, err
+	}
+	godUser := os.Getenv("GODUSER")
+	if godUser != "" && godUser == username {
+		ret := &AuthContext{
+			UserID:   godUser,
+			Username: godUser,
+			Roles:    []string{"Admin"},
+		}
+		return ret, nil
+	}
+	resp := &AuthResponse{}
+	// authUser := &AuthUser{}
+	cli := graphql.NewClient(authURL)
+	query := fmt.Sprintf(`
+		query {
+			authUserPass(username: "%s", password: "%s") {
+				userID
+				username
+				roles
+			}
+		}`, username, password)
+	req := graphql.NewRequest(query)
+	// authorization := fmt.Sprintf("Basic %s", GenAuthorization(username, password))
+	req.Header.Set("Authorization", authorization)
+	ctx := context.Background()
+	err = cli.Run(ctx, req, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.AuthUserPass, nil
 }
