@@ -1,6 +1,7 @@
 package elgo
 
 import (
+	"crypto/md5"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -18,6 +19,29 @@ func BasicAuth(username, password string) string {
 	auth := username + ":" + password
 	eauth := base64.StdEncoding.EncodeToString([]byte(auth))
 	return fmt.Sprintf("Basic %s", eauth)
+}
+
+func DigestString(s string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
+}
+
+func StrIn(s []string, ss string) bool {
+	for _, v := range s {
+		if v == ss {
+			return true
+		}
+	}
+	return false
+}
+
+func StrRemove(s []string, ss string) []string {
+	for i, v := range s {
+		if v == ss {
+			s[i] = s[len(s)-1]
+			return s[:len(s)-1]
+		}
+	}
+	return s
 }
 
 func CheckOS() string {
@@ -46,6 +70,19 @@ func FromJson(data []byte, v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func JsonFromFile(filename string, v interface{}) error {
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	data, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+	jsonFile.Close()
+	return FromJson(data, v)
 }
 
 func TrimSplit(s, seq string) []string {
@@ -183,4 +220,42 @@ func CIDRToPool(cidr string) map[string]string {
 	// skip last one
 	delete(ips, ipa.String())
 	return ips
+}
+
+func DecodeAuthHeader(authorization string) (string, string, error) {
+	auth := strings.SplitN(authorization, " ", 2)
+	if len(auth) != 2 || auth[0] != "Basic" {
+		return "", "", fmt.Errorf("Invalid header")
+	}
+	payload, err := base64.StdEncoding.DecodeString(auth[1])
+	if err != nil {
+		return "", "", err
+	}
+	pairs := strings.SplitN(string(payload), ":", 2)
+	if len(pairs) != 2 {
+		return "", "", fmt.Errorf("Invalid header")
+	}
+	return pairs[0], pairs[1], nil
+}
+
+func GenAuthorization(name, password string) string {
+	mstr := fmt.Sprintf("%s:%s", name, password)
+	return base64.StdEncoding.EncodeToString([]byte(mstr))
+}
+
+// func AuthRequest(authorization string) (*AuthContext, error) {
+// 	username, password, err := DecodeAuthHeader(authorization)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return AuthUserRequest(username, password)
+// }
+
+func MakeError(msg string) []byte {
+	ret := fmt.Sprintf(`{
+		"errors": [{
+			"message": "%s"
+		}]
+	}`, msg)
+	return []byte(ret)
 }

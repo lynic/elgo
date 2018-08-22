@@ -2,9 +2,11 @@ package elgo
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 func ReadHTTPBody(r *http.Request) ([]byte, error) {
@@ -205,4 +207,29 @@ func DoRequest(method, url string, body []byte, headers map[string]string) ([]by
 		}
 	}
 	return cdata, nil
+}
+
+const AuthContextKey = "AuthContext"
+
+func HttpAuthWraper(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authURL := os.Getenv("AUTHURL")
+		if authURL == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		authCtx, err := AuthRequest(r.Header.Get("Authorization"))
+		if err != nil {
+			w.Header().Add("WWW-Authenticate", "Basic realm=\"Authorization Required\"")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write(MakeError(err.Error()))
+			return
+		}
+		// authCtx := &AuthContext{}
+		// authCtx.UserID = authUser.ID
+		// authCtx.UserName = authUser.Name
+		ctx := context.WithValue(r.Context(), AuthContextKey, authCtx)
+		next.ServeHTTP(w, r.WithContext(ctx))
+		// next.ServeHTTP(w, r)
+	})
 }
