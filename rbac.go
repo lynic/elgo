@@ -69,13 +69,16 @@ func (r *AuthHandler) CheckRule(ctx context.Context, method string) bool {
 		// no authentication wrapper
 		return true
 	}
-	// no rbac rules for method
-	if _, exists := r.Policy[method]; exists == false {
-		if authCtx.IsAdmin() {
-			return true
-		}
-		return false
+	if authCtx.IsAdmin() {
+		return true
 	}
+	// no rbac rules for method
+	// if _, exists := r.Policy[method]; exists == false {
+	// 	if authCtx.IsAdmin() {
+	// 		return true
+	// 	}
+	// 	return false
+	// }
 	// check rbac rules for method
 	for _, role := range authCtx.Roles {
 		if StrIn(r.Policy[method], role) {
