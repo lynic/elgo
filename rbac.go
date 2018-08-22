@@ -44,7 +44,7 @@ func (r *AuthHandler) LoadPolicy() (map[string][]string, error) {
 	// var policy *map[string][]string
 	policy := make(map[string][]string)
 	// ppolicy := &policy
-	err := JsonFromFile(rbacFilePath, &policy)
+	err := LoadStruct(&policy, rbacFilePath)
 	if err != nil {
 		fmt.Printf("Failed to load policy from %s:%s\n", rbacFilePath, err.Error())
 		return policy, err

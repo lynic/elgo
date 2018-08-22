@@ -72,19 +72,6 @@ func FromJson(data []byte, v interface{}) error {
 	return nil
 }
 
-func JsonFromFile(filename string, v interface{}) error {
-	jsonFile, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	data, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		return err
-	}
-	jsonFile.Close()
-	return FromJson(data, v)
-}
-
 func TrimSplit(s, seq string) []string {
 	splited := strings.Split(s, seq)
 	ret := make([]string, len(splited))
