@@ -3,6 +3,7 @@ package elgo
 import (
 	"crypto/md5"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -11,8 +12,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/json-iterator/go"
 )
 
 func BasicAuth(username, password string) string {
@@ -49,7 +48,7 @@ func CheckOS() string {
 }
 
 func ToJson(v interface{}) ([]byte, error) {
-	out, err := jsoniter.Marshal(v)
+	out, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func ToJson(v interface{}) ([]byte, error) {
 }
 
 func ToPrettyJson(v interface{}) ([]byte, error) {
-	out, err := jsoniter.MarshalIndent(v, "", "  ")
+	out, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +64,7 @@ func ToPrettyJson(v interface{}) ([]byte, error) {
 }
 
 func FromJson(data []byte, v interface{}) error {
-	err := jsoniter.Unmarshal(data, v)
+	err := json.Unmarshal(data, v)
 	if err != nil {
 		return err
 	}
@@ -126,7 +125,7 @@ func LoadStruct(v interface{}, filename string) error {
 	if err != nil {
 		return err
 	}
-	err = jsoniter.Unmarshal(data, v)
+	err = json.Unmarshal(data, v)
 	if err != nil {
 		return err
 	}
@@ -142,7 +141,7 @@ func LoadStructCompress(v interface{}, filename string) error {
 	if err != nil {
 		return err
 	}
-	err = jsoniter.Unmarshal(cdata, v)
+	err = json.Unmarshal(cdata, v)
 	if err != nil {
 		return err
 	}
