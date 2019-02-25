@@ -41,7 +41,7 @@ func (s *SCNotify) Send(title, content string) error {
 	return nil
 }
 
-func Send(title, content string) error {
+func NotifySend(title, content string) error {
 	if os.Getenv("SCKEY") != "" {
 		sender := &SCNotify{}
 		sender.Init()
