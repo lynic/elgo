@@ -24,14 +24,16 @@ func (s *SCNotify) Init() error {
 
 func (s *SCNotify) Send(title, content string) error {
 	urlStr := fmt.Sprintf("https://sc.ftqq.com/%s.send", s.SCKey)
-	urlStr += fmt.Sprintf("?text=%s", url.QueryEscape(title))
-	urlStr += fmt.Sprintf("&desp=%s", url.QueryEscape(content))
-	resp, err := http.Get(urlStr)
+	data, err := url.ParseQuery("text=" + url.QueryEscape(title) + "&desp=" + url.QueryEscape(content))
 	if err != nil {
 		return err
 	}
+	resp, err := http.PostForm(urlStr, data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
