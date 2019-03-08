@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -69,6 +70,12 @@ func FromJson(data []byte, v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func DecodeJson(data io.Reader, v interface{}) error {
+	decoder := json.NewDecoder(data)
+	err := decoder.Decode(v)
+	return err
 }
 
 func TrimSplit(s, seq string) []string {
