@@ -10,7 +10,8 @@ import (
 )
 
 type SCNotify struct {
-	SCKey string
+	SCKey    string
+	UseHttps bool
 }
 
 func (s *SCNotify) Init() error {
@@ -23,7 +24,12 @@ func (s *SCNotify) Init() error {
 }
 
 func (s *SCNotify) Send(title, content string) error {
-	urlStr := fmt.Sprintf("https://sc.ftqq.com/%s.send", s.SCKey)
+	urlStr := fmt.Sprintf("sc.ftqq.com/%s.send", s.SCKey)
+	if s.UseHttps {
+		urlStr = "https://" + urlStr
+	} else {
+		urlStr = "http://" + urlStr
+	}
 	data, err := url.ParseQuery("text=" + url.QueryEscape(title) + "&desp=" + url.QueryEscape(content))
 	if err != nil {
 		return err
